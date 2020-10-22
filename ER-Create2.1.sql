@@ -1,0 +1,122 @@
+DROP TABLE DepFacInfo CASCADE CONSTRAINTS;
+DROP TABLE EleicaoInfo CASCADE CONSTRAINTS;
+DROP TABLE EleicaoInfo_DepFacInfo;
+DROP TABLE ListaCandidata CASCADE CONSTRAINTS;
+DROP TABLE ListaCandidata_User CASCADE CONSTRAINTS;
+DROP TABLE MesaVoto CASCADE CONSTRAINTS;
+DROP TABLE UTILIZADORES CASCADE CONSTRAINTS;
+DROP TABLE Voto CASCADE CONSTRAINTS;
+DROP SEQUENCE depfac_incre;
+DROP SEQUENCE eleiinfo_incre;
+DROP SEQUENCE listacandidata_incre;
+DROP SEQUENCE mesavoto_incre;
+DROP SEQUENCE voto_incre;
+
+CREATE TABLE DepFacInfo (ID number(10) NOT NULL, Faculdade char(256) NOT NULL, Departamento char(256) UNIQUE NOT NULL, PRIMARY KEY (ID));
+CREATE TABLE EleicaoInfo (ID number(10) NOT NULL, DataInicio date NOT NULL, DataFim date NOT NULL, Titulo char(256) NOT NULL, Descricao char(256) NOT NULL, Estado number(1) NOT NULL, Tipo number(10) NOT NULL, PRIMARY KEY (ID));
+CREATE TABLE EleicaoInfo_DepFacInfo (EleicaoInfoID number(10) NOT NULL, DepFacInfoID number(10) NOT NULL, PRIMARY KEY (EleicaoInfoID, DepFacInfoID));
+CREATE TABLE ListaCandidata (ID number(10) NOT NULL, Tipo number(10) NOT NULL, Nome char(256) NOT NULL, Nvotos number(10) NOT NULL, EleicaoInfoID number(10) NOT NULL, PRIMARY KEY (ID));
+CREATE TABLE ListaCandidata_User (ListaCandidataID number(10) NOT NULL, UserBI number(10) NOT NULL, PRIMARY KEY (ListaCandidataID, UserBI));
+CREATE TABLE MesaVoto (ID number(10) NOT NULL, Nterminais number(10) NOT NULL, Estado number(1) NOT NULL, EleicaoInfoID number(10) NOT NULL, DepFacInfoID number(10) NOT NULL, Nvotos number(10) NOT NULL, BI1 number(10), BI2 number(10) , BI3 number(10) , PRIMARY KEY (ID));
+CREATE TABLE UTILIZADORES (BI number(10) NOT NULL, Nome char(256) NOT NULL, Tipo number(1) NOT NULL, Password char(256) NOT NULL, ContatoTel number(9) NOT NULL, Morada char(256) NOT NULL, DataValBI date NOT NULL, DepFacInfoID number(10) NOT NULL, PRIMARY KEY (BI));
+CREATE TABLE Voto (ID number(10) NOT NULL, DataVoto date NOT NULL, EleicaoInfoID number(10) NOT NULL, MesaVotoID number(10) NOT NULL, UserBI number(10) NOT NULL, PRIMARY KEY (ID));
+ALTER TABLE ListaCandidata_User ADD CONSTRAINT FKListaCandi702187 FOREIGN KEY (ListaCandidataID) REFERENCES ListaCandidata (ID);
+ALTER TABLE ListaCandidata_User ADD CONSTRAINT FKListaCandi904183 FOREIGN KEY (UserBI) REFERENCES UTILIZADORES (BI);
+ALTER TABLE EleicaoInfo_DepFacInfo ADD CONSTRAINT FKEleicaoInf453267 FOREIGN KEY (EleicaoInfoID) REFERENCES EleicaoInfo (ID);
+ALTER TABLE EleicaoInfo_DepFacInfo ADD CONSTRAINT FKEleicaoInf970159 FOREIGN KEY (DepFacInfoID) REFERENCES DepFacInfo (ID);
+ALTER TABLE UTILIZADORES ADD CONSTRAINT pertence FOREIGN KEY (DepFacInfoID) REFERENCES DepFacInfo (ID);
+ALTER TABLE Voto ADD CONSTRAINT pode FOREIGN KEY (UserBI) REFERENCES UTILIZADORES (BI);
+ALTER TABLE Voto ADD CONSTRAINT tem1 FOREIGN KEY (EleicaoInfoID) REFERENCES EleicaoInfo (ID);
+ALTER TABLE Voto ADD CONSTRAINT tem2 FOREIGN KEY (MesaVotoID) REFERENCES MesaVoto (ID);
+ALTER TABLE ListaCandidata ADD CONSTRAINT tem3 FOREIGN KEY (EleicaoInfoID) REFERENCES EleicaoInfo (ID);
+ALTER TABLE MesaVoto ADD CONSTRAINT tem5 FOREIGN KEY (EleicaoInfoID) REFERENCES EleicaoInfo (ID);
+ALTER TABLE MesaVoto ADD CONSTRAINT tem6 FOREIGN KEY (DepFacInfoID) REFERENCES DepFacInfo (ID);
+
+
+/*CREATE SEQUENCE depfac_incre START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE eleiinfo_incre START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE listacandidata_incre START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE mesavoto_incre START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE voto_incre START WITH 1 INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER depfac_incre_trigger
+BEFORE INSERT
+ON DepFacInfo
+REFERENCING NEW AS NEW
+FOR EACH ROW
+BEGIN
+  if(:new.ID is null) then
+  SELECT depfac_incre.nextval
+  INTO :new.ID
+  FROM dual;
+  end if;
+END;
+
+CREATE OR REPLACE TRIGGER eleiinfo_incre_trigger
+BEFORE INSERT
+ON EleicaoInfo
+REFERENCING NEW AS NEW
+FOR EACH ROW
+BEGIN
+  if(:new.ID is null) then
+  SELECT eleiinfo_incre.nextval
+  INTO :new.ID
+  FROM dual;
+  end if;
+END;
+
+CREATE OR REPLACE TRIGGER listacandidata_incre_trigger
+BEFORE INSERT
+ON ListaCandidata
+REFERENCING NEW AS NEW
+FOR EACH ROW
+BEGIN
+  if(:new.ID is null) then
+  SELECT listacandidata_incre.nextval
+  INTO :new.ID
+  FROM dual;
+  end if;
+END;
+
+CREATE OR REPLACE TRIGGER mesavoto_incre_trigger
+BEFORE INSERT
+ON MesaVoto
+REFERENCING NEW AS NEW
+FOR EACH ROW
+BEGIN
+  if(:new.ID is null) then
+  SELECT mesavoto_incre.nextval
+  INTO :new.ID
+  FROM dual;
+  end if;
+END;
+
+CREATE OR REPLACE TRIGGER voto_incre_trigger
+BEFORE INSERT
+ON Voto
+REFERENCING NEW AS NEW
+FOR EACH ROW
+BEGIN
+  if(:new.ID is null) then
+  SELECT voto_incre.nextval
+  INTO :new.ID
+  FROM dual;
+  end if;
+END;*/
+
+CREATE VIEW vw_UTILIZADORES AS VWUTILIZADORES
+SELECT * FROM UTILIZADORES;
+/*
+Drop TRIGGER Insertupdate;
+CREATE TRIGGER Insertupdate
+INSTEAD OF INSERT
+ON vw_Utilizadores 
+BEGIN
+IF EXISTS(SELECT * FROM UTILIZADORES WHERE BI=new.BI)
+THEN
+UPDATE UTILIZADORES SET NOME=:new.NOME , TIPO=:new.TIPO , PASSWORD=:new.PASSWORD , CONTATOTEL=:new.CONTATOTEL , MORADA=:new.MORADA , DATAVALBI=:new.DATAVALBI , DEPFACINFOID=:new.DEPFACINFOID WHERE BI=:new.BI
+ELSE
+INSERT INTO UTILIZADORES (BI , NOME , TIPO , PASSWORD , CONTATOTEL , MORADA , DATAVALBI , DEPFACINFOID) VALUES (:new.BI , :new.NOME , :new.TIPO , :new.PASSWORD , :new.CONTATOTEL , :new.MORADA , :new.DATAVALBI , :new.DEPFACINFOID);
+END IF
+END;
+*/
